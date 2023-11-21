@@ -92,15 +92,35 @@ def train_mle_estimator(train_images, train_labels):
     """ Inputs: train_images, train_labels
         Returns the MLE estimators theta_mle and pi_mle"""
 
-    # YOU NEED TO WRITE THIS PART
+    num_classes = 10
+    num_features = train_images.shape[1]
+    theta_mle = np.zeros((num_classes, num_features))
+    pi_mle = np.zeros(num_classes)
+
+    for i in range(num_classes):
+        images_i = train_images[train_labels[:, i] == 1]
+        theta_mle[i] = np.mean(images_i, axis=0)
+        pi_mle[i] = images_i.shape[0] / float(train_images.shape[0])
+
     return theta_mle, pi_mle
 
 
 def train_map_estimator(train_images, train_labels):
     """ Inputs: train_images, train_labels
         Returns the MAP estimators theta_map and pi_map"""
-    
-    # YOU NEED TO WRITE THIS PART
+
+    num_classes = 10
+    num_features = train_images.shape[1]
+    theta_map = np.zeros((num_classes, num_features))
+    pi_map = np.zeros(num_classes)
+
+    alpha = 2  # Laplace smoothing parameter
+    for i in range(num_classes):
+        images_i = train_images[train_labels[:, i] == 1]
+        theta_map[i] = (np.sum(images_i, axis=0) + alpha - 1) / (
+                    images_i.shape[0] + alpha * num_features - num_features)
+        pi_map[i] = images_i.shape[0] / float(train_images.shape[0])
+
     return theta_map, pi_map
 
 
@@ -111,7 +131,14 @@ def log_likelihood(images, theta, pi):
     log_like is a matrix of num of images x num of classes
     Note that log likelihood is not only for c^(i), it is for all possible c's."""
 
-    # YOU NEED TO WRITE THIS PART
+    num_classes = theta.shape[0]
+    num_images = images.shape[0]
+    log_like = np.zeros((num_images, num_classes))
+
+    for i in range(num_classes):
+        term1 = np.dot(images, np.log(theta[i]))
+        term2 = np.dot(1 - images, np.log(1 - theta[i]))
+        log_like[:, i] = term1 + term2 + np.log(pi[i])
 
     return log_like
 
@@ -120,15 +147,16 @@ def predict(log_like):
     """ Inputs: matrix of log likelihoods
     Returns the predictions based on log likelihood values"""
 
-    # YOU NEED TO WRITE THIS PART
-    return predictions
+    return np.argmax(log_like, axis=1)
 
 
 def accuracy(log_like, labels):
     """ Inputs: matrix of log likelihoods and 1-of-K labels
     Returns the accuracy based on predictions from log likelihood values"""
 
-    # YOU NEED TO WRITE THIS PART
+    predictions = predict(log_like)
+    correct_predictions = predictions == np.argmax(labels, axis=1)
+    acc = np.mean(correct_predictions)
     return acc
 
 
