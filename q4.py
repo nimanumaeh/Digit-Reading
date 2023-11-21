@@ -3,7 +3,7 @@ Question 4 Skeleton Code
 
 Here you should implement and evaluate the Conditional Gaussian classifier.
 '''
-
+import pickle
 import data
 import numpy as np
 # Import pyplot - plt.imshow is useful!
@@ -92,6 +92,22 @@ def classify_data(digits, means, covariances):
     cond_likelihood = conditional_likelihood(digits, means, covariances)
     return np.argmax(cond_likelihood, axis=1)
 
+
+def save_trained_model(means, covariances, filename='model_parameters.pkl'):
+    """
+    Save the trained model parameters to a file.
+    """
+    with open(filename, 'wb') as f:
+        pickle.dump({'means': means, 'covariances': covariances}, f)
+
+def load_trained_model(filename='model_parameters.pkl'):
+    """
+    Load the trained model parameters from a file.
+    """
+    with open(filename, 'rb') as f:
+        model_params = pickle.load(f)
+    return model_params['means'], model_params['covariances']
+
 def main():
     train_data, train_labels, test_data, test_labels = data.load_all_data('data')
 
@@ -99,7 +115,21 @@ def main():
     means = compute_mean_mles(train_data, train_labels)
     covariances = compute_sigma_mles(train_data, train_labels)
 
-    # Evaluation
+    save_trained_model(means, covariances)
+    # Average Conditional Likelihood
+    avg_cond_likelihood_train = avg_conditional_likelihood(train_data, train_labels, means, covariances)
+    avg_cond_likelihood_test = avg_conditional_likelihood(test_data, test_labels, means, covariances)
+    print("Average Conditional Likelihood (Train):", avg_cond_likelihood_train)
+    print("Average Conditional Likelihood (Test):", avg_cond_likelihood_test)
+
+    # Classification and Accuracy
+    train_predictions = classify_data(train_data, means, covariances)
+    test_predictions = classify_data(test_data, means, covariances)
+    train_accuracy = np.mean(train_predictions == train_labels)
+    test_accuracy = np.mean(test_predictions == test_labels)
+
+    print("Training Accuracy:", train_accuracy)
+    print("Test Accuracy:", test_accuracy)
 
 if __name__ == '__main__':
     main()
